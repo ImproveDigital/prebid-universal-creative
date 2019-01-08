@@ -25,10 +25,10 @@ export function newNativeTrackerManager(win) {
   function readAdIdFromEvent(event) {
     let adId =
       event &&
-      event.target &&
-      event.target.attributes &&
-      event.target.attributes[AD_DATA_ADID_ATTRIBUTE] &&
-      event.target.attributes[AD_DATA_ADID_ATTRIBUTE].value;
+      event.currentTarget &&
+      event.currentTarget.attributes &&
+      event.currentTarget.attributes[AD_DATA_ADID_ATTRIBUTE] &&
+      event.currentTarget.attributes[AD_DATA_ADID_ATTRIBUTE].value;
   
     return adId || '';
   }
