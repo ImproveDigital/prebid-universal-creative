@@ -70,7 +70,7 @@ describe('nativeTrackerManager', function () {
         },
         addEventListener: ((type, listener, capture) => {
           listener({
-            target: {
+            currentTarget: {
               attributes: {
                 pbAdId: {
                   value: 'ad123'
