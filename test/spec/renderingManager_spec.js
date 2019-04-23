@@ -1,5 +1,6 @@
 import { newRenderingManager } from 'src/renderingManager';
 import * as utils from 'src/utils';
+import * as domHelper from 'src/domHelper';
 import { expect } from 'chai';
 import { mocks } from 'test/helpers/mocks';
 import { merge } from 'lodash';
@@ -16,7 +17,7 @@ const renderingMocks = {
       },
       parent: {
         postMessage: sinon.spy(),
-        pbjs: {
+        $$PREBID_GLOBAL$$: {
           renderAd: sinon.spy()
         }
       },
@@ -189,7 +190,7 @@ describe('renderingManager', function() {
     let iframeStub;
     beforeEach(function(){
       parseStub = sinon.stub(utils, 'parseUrl');
-      iframeStub = sinon.stub(utils, 'getEmptyIframe');
+      iframeStub = sinon.stub(domHelper, 'getEmptyIframe');
     });
 
     after(function() {
@@ -252,7 +253,7 @@ describe('renderingManager', function() {
       };
         
       renderObject.renderAd(mockWin.document, ucTagData);
-      expect(mockWin.parent.pbjs.renderAd.callCount).to.equal(1);
+      expect(mockWin.parent.$$PREBID_GLOBAL$$.renderAd.callCount).to.equal(1);
     });
   });
 });

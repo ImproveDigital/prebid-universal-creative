@@ -5,9 +5,15 @@
  * This script uses the following query params in the URL:
  *
  *   max_sync_count (optional): The number of syncs allowed on the page. If present, this should be a positive integer.
+ *
+ *   endpoint (optional): The endpoint to handle bidder sync. If present, this should be a defined property in VALID_ENDPOINTS.
  */
+import * as domHelper from './domHelper';
 
-const ENDPOINT = 'https://prebid.adnxs.com/pbs/v1/cookie_sync';
+const VALID_ENDPOINTS = {
+  rubicon: 'https://prebid-server.rubiconproject.com/cookie_sync'
+};
+const ENDPOINT = sanitizeEndpoint(parseQueryParam('endpoint', window.location.search));
 const MAX_SYNC_COUNT = sanitizeSyncCount(parseInt(parseQueryParam('max_sync_count', window.location.search), 10));
 const GDPR = sanitizeGdpr(parseInt(parseQueryParam('gdpr', window.location.search), 10));
 const GDPR_CONSENT = sanitizeGdprConsent(parseQueryParam('gdpr_consent', window.location.search));
@@ -24,13 +30,25 @@ function doBidderSync(type, url, bidder, done) {
     console.log(`Invoking image pixel user sync for bidder: "${bidder}"`);
     triggerPixel(url, done);
   } else if (type == 'iframe') {
-    console.log(`Skipping iframe pixel user sync for bidder: "${bidder}". This isn't implemented yet.`);
-    // TODO test iframe solution
-    done();
+    console.log(`Invoking iframe pixel user sync for bidder: "${bidder}"`);
+    triggerIframeLoad(url, bidder, done);
   } else {
     console.log(`User sync type "${type}" not supported for bidder: "${bidder}"`);
     done();
   }
+}
+
+function triggerIframeLoad(url, bidder, done) {
+  if(!url){
+   return;
+  }
+  let iframe = domHelper.getEmptyIframe(0, 0);
+  iframe.id = `sync_${bidder}_${Date.now()}`;
+  iframe.src = url;
+  iframe.onload = done;
+  // we aren't listening to onerror because it won't fire for x-domain sources
+  // however, in the event that the URL can't be resolved, the browser still invokes onload
+  domHelper.insertElement(iframe, document, 'html');
 }
 
 function triggerPixel(url, done) {
@@ -137,6 +155,17 @@ function parseQueryParam(name, urlSearch) {
   var results = regex.exec(urlSearch);
   return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
 };
+
+/**
+ * If the value is a valid url (string and is defined in VALID_ENDPOINTS), return it.
+ * Otherwise it will return a default value
+ */
+function sanitizeEndpoint(value) {
+  if (value && VALID_ENDPOINTS.hasOwnProperty(value)) {
+    return VALID_ENDPOINTS[value]
+  }
+  return 'https://prebid.adnxs.com/pbs/v1/cookie_sync';
+}
 
 /**
  * If the value is a valid sync count (0 or a positive number), return it.
